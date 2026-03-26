@@ -1,0 +1,73 @@
+{
+  "version": 1,
+  "author": "Smart Attendance System",
+  "editor": "wokwi",
+  "parts": [
+    {
+      "type": "wokwi-esp32-devkit-v1",
+      "id": "esp",
+      "top": 0,
+      "left": 0,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-lcd1602",
+      "id": "lcd",
+      "top": -100,
+      "left": 200,
+      "attrs": { "pins": "i2c" }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led_green",
+      "top": 100,
+      "left": 350,
+      "attrs": { "color": "green" }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led_red",
+      "top": 150,
+      "left": 350,
+      "attrs": { "color": "red" }
+    },
+    {
+      "type": "wokwi-buzzer",
+      "id": "buzzer",
+      "top": 200,
+      "left": 350,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r1",
+      "top": 100,
+      "left": 300,
+      "attrs": { "value": "220" }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r2",
+      "top": 150,
+      "left": 300,
+      "attrs": { "value": "220" }
+    }
+  ],
+  "connections": [
+    ["esp:GPIO25", "r1:1", "green", []],
+    ["r1:2", "led_green:A", "green", []],
+    ["led_green:C", "esp:GND.1", "black", []],
+
+    ["esp:GPIO26", "r2:1", "red", []],
+    ["r2:2", "led_red:A", "red", []],
+    ["led_red:C", "esp:GND.1", "black", []],
+
+    ["esp:GPIO27", "buzzer:1", "orange", []],
+    ["buzzer:2", "esp:GND.1", "black", []],
+
+    ["esp:GPIO21", "lcd:SDA", "blue", []],
+    ["esp:GPIO22", "lcd:SCL", "yellow", []],
+    ["esp:3V3", "lcd:VCC", "red", []],
+    ["esp:GND.1", "lcd:GND", "black", []]
+  ]
+}
