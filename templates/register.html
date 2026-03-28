@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Register Student</title>
+
+    <style>
+        body {
+            text-align: center;
+            font-family: Arial;
+            background: #f4f4f4;
+        }
+
+        input {
+            padding: 10px;
+            margin: 10px;
+            width: 250px;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            cursor: pointer;
+        }
+
+        .or-text {
+            font-weight: bold;
+        }
+
+        .note {
+            font-size: 14px;
+            color: #555;
+        }
+    </style>
+
+    <!-- ===================================================
+         التحقق من وجود صورة
+    =================================================== -->
+    <script>
+    function validateForm() {
+
+        const image = document.getElementById("imageInput").value;
+        const captured = "{{ captured }}";
+
+        if (!image && captured !== "True") {
+            alert("Please upload an image or use camera");
+            return false;
+        }
+
+        return true;
+    }
+    </script>
+
+</head>
+<body>
+
+<h2>Register New Student</h2>
+
+<form method="POST" enctype="multipart/form-data">
+
+    <!-- الاسم -->
+    <input type="text" name="name" placeholder="Student Name"
+           value="{{ name if name else '' }}" required><br>
+
+    <!-- الرقم -->
+    <input type="text" name="student_id" placeholder="Student ID"
+           value="{{ student_id if student_id else '' }}" required><br>
+
+    <p class="note">Upload a clear personal face image</p>
+
+    <!-- رفع صورة -->
+    <input type="file" name="image" id="imageInput"><br>
+
+    <div class="or-text">OR</div>
+
+    <!-- الكاميرا -->
+    <button type="submit" formaction="/register_camera" formmethod="POST">
+    🎥 Use Camera
+    </button>
+
+    <br><br>
+
+    <!-- عرض الصورة -->
+    {% if captured %}
+        <h3>Captured Image:</h3>
+        <img src="/image/temp_capture.jpg" width="200">
+        <p style="color:green;">Image captured successfully ✔</p>
+    {% endif %}
+
+    <br>
+
+    <!-- الحفظ -->
+    <button type="submit" formaction="/register" formmethod="POST" onclick="return validateForm()">
+    💾 Save Student
+    </button>
+
+</form>
+
+<br>
+
+<a href="/">
+    <button>Back</button>
+</a>
+
+</body>
+</html>
