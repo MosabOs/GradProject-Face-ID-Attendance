@@ -1,0 +1,46 @@
+{
+  "version": 1,
+  "author": "Smart Attendance System",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "wokwi-esp32-devkit-v1", "id": "esp", "top": -14.5, "left": -14.6, "attrs": {} },
+    { "type": "wokwi-lcd1602", "id": "lcd", "top": -120, "left": 200, "attrs": { "pins": "i2c" } },
+    {
+      "type": "wokwi-led",
+      "id": "led_green",
+      "top": 80,
+      "left": 350,
+      "attrs": { "color": "green" }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led_red",
+      "top": 150,
+      "left": 349.4,
+      "attrs": { "color": "red" }
+    },
+    { "type": "wokwi-buzzer", "id": "buzzer", "top": 194.4, "left": 395.4, "attrs": {} },
+    { "type": "wokwi-resistor", "id": "r1", "top": 80, "left": 300, "attrs": { "value": "220" } },
+    { "type": "wokwi-resistor", "id": "r2", "top": 140, "left": 300, "attrs": { "value": "220" } }
+  ],
+  "connections": [
+    [ "esp:GPIO25", "r1:1", "green", [] ],
+    [ "r1:2", "led_green:A", "green", [] ],
+    [ "led_green:C", "esp:GND.1", "green", [ "h-297.8", "v12.5" ] ],
+    [ "esp:GPIO26", "r2:1", "red", [] ],
+    [ "r2:2", "led_red:A", "red", [] ],
+    [ "led_red:C", "esp:GND.1", "red", [ "h-259.4", "v-67.2", "h-18.3" ] ],
+    [ "esp:GPIO27", "buzzer:1", "orange", [] ],
+    [ "esp:GPIO21", "lcd:SDA", "blue", [] ],
+    [ "esp:GPIO22", "lcd:SCL", "yellow", [] ],
+    [ "esp:3V3", "lcd:VCC", "#8f4814", [ "h71.5", "v-237" ] ],
+    [ "esp:GND.1", "lcd:GND", "cyan", [ "h90.7", "v-237" ] ],
+    [ "lcd:SDA", "esp:D21", "green", [ "h-98.4", "v117.4" ] ],
+    [ "lcd:SCL", "esp:D22", "green", [ "h-108", "v79" ] ],
+    [ "r1:1", "esp:D25", "green", [ "v0" ] ],
+    [ "r2:1", "esp:D26", "red", [ "v55.95", "h-348", "v-115.1" ] ],
+    [ "buzzer:1", "esp:D27", "black", [ "v9.6", "h-451.2", "v-191.7" ] ],
+    [ "buzzer:2", "esp:GND.1", "orange", [ "h-0.4", "v38.4", "h-355.2", "v-182.4", "h9.9" ] ]
+  ],
+  "dependencies": {}
+}
