@@ -62,14 +62,49 @@ def connect_mqtt():
         print(f"🔌 Connecting to {MQTT_BROKER}...")
         mqtt_client.connect(MQTT_BROKER, MQTT_PORT, 60)
         mqtt_client.loop_start()
-        time.sleep(2)
+
+        # انتظار الاتصال
+        timeout = 0
+        while not mqtt_connected and timeout < 5:
+            time.sleep(1)
+            timeout += 1
+
     except Exception as e:
         print(f"❌ MQTT Error: {e}")
 
+# ===================================================
+# MQTT احترافي 🔥 (منع spam + ضمان الوصول)
+# ===================================================
+last_sent_message = ""
+last_send_time = 0
+MIN_SECONDS_BETWEEN_SENDS = 2
+
 def send_mqtt_message(message):
+    global last_sent_message, last_send_time
+
+    current_time = time.time()
+
+    # منع التكرار
+    if message == last_sent_message and (current_time - last_send_time) < MIN_SECONDS_BETWEEN_SENDS:
+        return
+
     if mqtt_connected:
-        mqtt_client.publish(MQTT_TOPIC, message)
-        print(f"📤 Sent: {message}")
+
+        print(f"📤 Sending: {message}")
+
+        # إرسال احترافي
+        for i in range(3):
+            mqtt_client.publish(
+                MQTT_TOPIC,
+                message,
+                qos=1,
+                retain=True
+            )
+            time.sleep(0.3)
+
+        last_sent_message = message
+        last_send_time = current_time
+
     else:
         print("⚠️ MQTT not connected")
 
@@ -174,6 +209,8 @@ def run_system():
     last_recorded = {}
     frame_count = 0
 
+    done = False  # 🔥 للإيقاف التلقائي
+
     while True:
         ret, frame = cap.read()
         if not ret:
@@ -204,18 +241,28 @@ def run_system():
                     if success:
                         send_mqtt_message(f"PRESENT:{name}:{student_id}")
                         print(f"✅ {name} marked present")
+                        done = True  # 🔥 اقفل بعد النجاح
+
                     else:
-                        send_mqtt_message(f"ALREADY:{name}")
+                        send_mqtt_message(f"ALREADY:{name}:{student_id}")
                         print(f"⚠️ {name} already marked")
+                        done = True  # 🔥 اقفل بعد already
 
             else:
                 cv2.putText(frame, "Unknown", (50, 50),
                             cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
 
-                send_mqtt_message("UNKNOWN")
+                if last_sent_message != "UNKNOWN":
+                    send_mqtt_message(f"UNKNOWN:{int(time.time())}")
 
         cv2.imshow("Smart Attendance", frame)
 
+        # 🔥 الإيقاف التلقائي
+        if done:
+            print("🛑 Auto Stop: Attendance completed")
+            break
+
+        # زر يدوي احتياطي
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
