@@ -58,6 +58,24 @@ bool mqttConnectedOnce = false;
 String lastMessage = "";   // لمنع التكرار
 
 // ===================================================
+// دالة تحريك النص اذا كان الاسم طويل (Scroll)
+// ===================================================
+void scrollText(String text, int row, int delayTime = 300) {
+
+  if (text.length() <= 16) {
+    lcd.setCursor(0, row);
+    lcd.print(text);
+    return;
+  }
+
+  for (int i = 0; i <= text.length() - 16; i++) {
+    lcd.setCursor(0, row);
+    lcd.print(text.substring(i, i + 16));
+    delay(delayTime);
+  }
+}
+
+// ===================================================
 // استقبال الرسائل (نسخة احترافية)
 // ===================================================
 void onMessageReceived(char* topic, byte* payload, unsigned int length) {
@@ -78,12 +96,23 @@ void onMessageReceived(char* topic, byte* payload, unsigned int length) {
   // ===== حضور مسجل =====
   if (message.startsWith("PRESENT:")) {
 
-    String name = message.substring(8);
+    String data = message.substring(8);
+
+    // فصل الاسم عن الـ ID
+    int separatorIndex = data.indexOf(":");
+    String name;
+
+    if (separatorIndex != -1) {
+      name = data.substring(0, separatorIndex);
+    } else {
+      name = data;
+    }
 
     lcd.setCursor(0, 0);
     lcd.print("Attendance OK!");
-    lcd.setCursor(0, 1);
-    lcd.print(name.substring(0, 16));
+    
+    //  عرض الاسم مع Scroll
+    scrollText(name, 1);
 
     digitalWrite(GREEN_LED, HIGH);
     digitalWrite(RED_LED, LOW);
@@ -95,12 +124,22 @@ void onMessageReceived(char* topic, byte* payload, unsigned int length) {
   // ===== مسجل مسبقاً =====
   else if (message.startsWith("ALREADY:")) {
 
-    String name = message.substring(8);
+    String data = message.substring(8);
+
+    int separatorIndex = data.indexOf(":");
+    String name;
+
+    if (separatorIndex != -1) {
+      name = data.substring(0, separatorIndex);
+    } else {
+      name = data;
+    }
 
     lcd.setCursor(0, 0);
     lcd.print("Already Marked!");
-    lcd.setCursor(0, 1);
-    lcd.print(name.substring(0, 16));
+
+    // عرض الاسم مع Scroll
+    scrollText(name, 1);
 
     digitalWrite(GREEN_LED, HIGH);
     digitalWrite(RED_LED, HIGH);
@@ -125,7 +164,6 @@ void onMessageReceived(char* topic, byte* payload, unsigned int length) {
     digitalWrite(RED_LED, LOW);
   }
 
-  // ❌ تم تعطيل الرجوع التلقائي
   /*
   lcd.clear();
   lcd.setCursor(0, 0);
@@ -176,7 +214,6 @@ void connectMQTT() {
 
       mqttClient.subscribe(MQTT_TOPIC);
 
-      // يظهر مرة واحدة فقط
       if (!mqttConnectedOnce) {
         lcd.clear();
         lcd.print("MQTT OK");
