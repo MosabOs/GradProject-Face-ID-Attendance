@@ -13,9 +13,9 @@
        - Buzzer على Pin 27
   5. اضغط Start Simulation
 ===================================================
-  مكتبات مطلوبة في Wokwi (أضفها من Library Manager):
-       - PubSubClient  (للـ MQTT)
-       - LiquidCrystal_I2C (للشاشة)
+  مكتبات مطلوبة:
+       - PubSubClient
+       - LiquidCrystal_I2C
 ===================================================
 */
 
@@ -24,60 +24,66 @@
 #include <LiquidCrystal_I2C.h>
 
 // ===================================================
-// إعدادات الواي فاي - في Wokwi استخدم هذه القيم كما هي
+// إعدادات الواي فاي - في Wokwi استخدم هذه القيم
 // ===================================================
 const char* WIFI_SSID     = "Wokwi-GUEST";
 const char* WIFI_PASSWORD = "";
 
 // ===================================================
-// إعدادات MQTT - نفس القيم في Python
+// إعدادات MQTT (السيرفر القديم)
 // ===================================================
 const char* MQTT_BROKER = "broker.hivemq.com";
 const int   MQTT_PORT   = 1883;
 const char* MQTT_TOPIC  = "smartattendance/result";
 
 // ===================================================
-// أرقام الأطراف (Pins)
+// Pins
 // ===================================================
 const int GREEN_LED = 25;
 const int RED_LED   = 26;
 const int BUZZER    = 27;
 
 // ===================================================
-// تهيئة الشاشة LCD (عنوان I2C: 0x27، 16 عمود، 2 سطر)
+// تهيئة الشاشة
 // ===================================================
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 
-WiFiClient   espClient;
+WiFiClient espClient;
 PubSubClient mqttClient(espClient);
 
-// 🔥 متغير لمنع تكرار MQTT OK
+// ===================================================
+// متغيرات احترافية 
+// ===================================================
 bool mqttConnectedOnce = false;
+String lastMessage = "";   // لمنع التكرار
 
 // ===================================================
-// دالة استقبال رسائل MQTT
+// استقبال الرسائل (نسخة احترافية)
 // ===================================================
 void onMessageReceived(char* topic, byte* payload, unsigned int length) {
 
-  // تحويل الرسالة إلى نص
   String message = "";
   for (int i = 0; i < length; i++) {
     message += (char)payload[i];
   }
+
+  Serial.println("New Message: " + message);
+
+  //  تجاهل الرسائل المكررة
+  if (message == lastMessage) return;
+  lastMessage = message;
 
   lcd.clear();
 
   // ===== حضور مسجل =====
   if (message.startsWith("PRESENT:")) {
 
-    String parts = message.substring(8);
-    int colonIndex = parts.indexOf(':');
-    String studentName = (colonIndex > 0) ? parts.substring(0, colonIndex) : parts;
+    String name = message.substring(8);
 
     lcd.setCursor(0, 0);
     lcd.print("Attendance OK!");
     lcd.setCursor(0, 1);
-    lcd.print(studentName.substring(0, 16));
+    lcd.print(name.substring(0, 16));
 
     digitalWrite(GREEN_LED, HIGH);
     digitalWrite(RED_LED, LOW);
@@ -89,12 +95,12 @@ void onMessageReceived(char* topic, byte* payload, unsigned int length) {
   // ===== مسجل مسبقاً =====
   else if (message.startsWith("ALREADY:")) {
 
-    String parts = message.substring(8);
+    String name = message.substring(8);
 
     lcd.setCursor(0, 0);
     lcd.print("Already Marked!");
     lcd.setCursor(0, 1);
-    lcd.print(parts.substring(0, 16));
+    lcd.print(name.substring(0, 16));
 
     digitalWrite(GREEN_LED, HIGH);
     digitalWrite(RED_LED, HIGH);
@@ -105,7 +111,7 @@ void onMessageReceived(char* topic, byte* payload, unsigned int length) {
   }
 
   // ===== وجه غير معروف =====
-  else if (message == "UNKNOWN") {
+  else if (message.startsWith("UNKNOWN")) {
 
     lcd.setCursor(0, 0);
     lcd.print("Unknown Face!");
@@ -119,7 +125,7 @@ void onMessageReceived(char* topic, byte* payload, unsigned int length) {
     digitalWrite(RED_LED, LOW);
   }
 
-  // ❌ تم تعطيل الرجوع التلقائي للوضع الطبيعي
+  // ❌ تم تعطيل الرجوع التلقائي
   /*
   lcd.clear();
   lcd.setCursor(0, 0);
@@ -131,8 +137,8 @@ void onMessageReceived(char* topic, byte* payload, unsigned int length) {
 // الاتصال بالواي فاي
 // ===================================================
 void connectWiFi() {
+
   lcd.clear();
-  lcd.setCursor(0, 0);
   lcd.print("Connecting WiFi");
 
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
@@ -156,36 +162,41 @@ void connectWiFi() {
 }
 
 // ===================================================
-// الاتصال بـ MQTT
+// الاتصال بـ MQTT (نسخة احترافية)
 // ===================================================
 void connectMQTT() {
 
   if (mqttClient.connected()) return;
 
-  if (mqttClient.connect("ESP32Client")) {
+  int retries = 0;
 
-    mqttClient.subscribe(MQTT_TOPIC);
+  while (!mqttClient.connected() && retries < 5) {
 
-    // 🔥 يظهر مرة واحدة فقط
-    if (!mqttConnectedOnce) {
-      lcd.clear();
-      lcd.print("MQTT OK");
-      mqttConnectedOnce = true;
+    if (mqttClient.connect("ESP32Client")) {
+
+      mqttClient.subscribe(MQTT_TOPIC);
+
+      // يظهر مرة واحدة فقط
+      if (!mqttConnectedOnce) {
+        lcd.clear();
+        lcd.print("MQTT OK");
+        mqttConnectedOnce = true;
+        delay(1000);
+      }
+
+    } else {
+      retries++;
+      delay(1000);
     }
-
-  } else {
-
-    lcd.clear();
-    lcd.print("MQTT Failed");
   }
-
-  delay(1000);
 }
 
 // ===================================================
 // الإعداد الأولي
 // ===================================================
 void setup() {
+
+  Serial.begin(115200); // Debug
 
   pinMode(GREEN_LED, OUTPUT);
   pinMode(RED_LED, OUTPUT);
@@ -200,7 +211,7 @@ void setup() {
   lcd.print("Starting...");
   delay(1500);
 
-  // اتصال
+  // الاتصال
   connectWiFi();
 
   mqttClient.setServer(MQTT_BROKER, MQTT_PORT);
