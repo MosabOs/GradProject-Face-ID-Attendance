@@ -81,7 +81,7 @@ def register_student():
 
         elif key == ord(' '):  # SPACE
             try:
-                # 🔥 DeepFace face detection
+                # DeepFace face detection
                 result = DeepFace.extract_faces(frame, enforce_detection=True)
 
                 if len(result) == 0:

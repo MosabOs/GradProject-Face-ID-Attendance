@@ -45,35 +45,34 @@ def on_connect(client, userdata, flags, rc):
     global mqtt_connected
     if rc == 0:
         mqtt_connected = True
-        print("✅ MQTT Connected")
+        print("MQTT Connected")
     else:
-        print(f"❌ MQTT Connection Failed: {rc}")
+        print(f"MQTT Connection Failed: {rc}")
 
 def on_disconnect(client, userdata, rc):
     global mqtt_connected
     mqtt_connected = False
-    print("⚠️ MQTT Disconnected")
+    print("MQTT Disconnected")
 
 mqtt_client.on_connect = on_connect
 mqtt_client.on_disconnect = on_disconnect
 
 def connect_mqtt():
     try:
-        print(f"🔌 Connecting to {MQTT_BROKER}...")
+        print(f"Connecting to {MQTT_BROKER}...")
         mqtt_client.connect(MQTT_BROKER, MQTT_PORT, 60)
         mqtt_client.loop_start()
 
-        # انتظار الاتصال
         timeout = 0
         while not mqtt_connected and timeout < 5:
             time.sleep(1)
             timeout += 1
 
     except Exception as e:
-        print(f"❌ MQTT Error: {e}")
+        print(f"MQTT Error: {e}")
 
 # ===================================================
-# MQTT احترافي 🔥 (منع spam + ضمان الوصول)
+# MQTT (منع التكرار الحقيقي)
 # ===================================================
 last_sent_message = ""
 last_send_time = 0
@@ -84,29 +83,31 @@ def send_mqtt_message(message):
 
     current_time = time.time()
 
-    # منع التكرار
+    # منع التكرار خلال ثانيتين
     if message == last_sent_message and (current_time - last_send_time) < MIN_SECONDS_BETWEEN_SENDS:
         return
 
     if mqtt_connected:
 
-        print(f"📤 Sending: {message}")
+        print(f"Sending: {message}")
 
-        # إرسال احترافي
-        for i in range(3):
-            mqtt_client.publish(
-                MQTT_TOPIC,
-                message,
-                qos=1,
-                retain=True
-            )
-            time.sleep(0.3)
+        # إرسال مرة واحدة فقط (مهم جداً)
+        mqtt_client.publish(
+            MQTT_TOPIC,
+            message,
+            qos=1,
+            retain=True   # مهم جداً (لا تغيّره)
+        )
+        time.sleep(1)
+
+        # تأخير بسيط لضمان وصول الرسالة
+        time.sleep(0.3)
 
         last_sent_message = message
         last_send_time = current_time
 
     else:
-        print("⚠️ MQTT not connected")
+        print("MQTT not connected")
 
 # ===================================================
 # قاعدة البيانات
@@ -153,7 +154,7 @@ def record_attendance(student_id, student_name):
 # ===================================================
 def load_students_data():
     if not os.path.exists(STUDENTS_DATA_FILE):
-        print("❌ No students data found")
+        print("No students data found")
         return None
     with open(STUDENTS_DATA_FILE, "rb") as f:
         return pickle.load(f)
@@ -164,6 +165,10 @@ def load_students_data():
 def recognize_face(frame, known_images):
     try:
         for i, known_img in enumerate(known_images):
+
+            # لو الصورة path
+            if isinstance(known_img, str):
+                known_img = cv2.imread(known_img)
 
             result = DeepFace.verify(frame, known_img, enforce_detection=False)
 
@@ -194,31 +199,35 @@ def run_system():
     known_ids    = data["ids"]
 
     if len(known_images) == 0:
-        print("❌ No students registered")
+        print("No students registered")
         return
 
-    print(f"✅ Loaded {len(known_images)} students")
+    print(f"Loaded {len(known_images)} students")
 
     connect_mqtt()
 
     cap = cv2.VideoCapture(0)
     if not cap.isOpened():
-        print("❌ Camera not found")
+        print("Camera not found")
         return
 
     last_recorded = {}
     frame_count = 0
-
-    done = False  # 🔥 للإيقاف التلقائي
+    done = False
 
     while True:
         ret, frame = cap.read()
         if not ret:
             break
 
+        # ===================================================
+        # عرض حالة البحث دائماً
+        # ===================================================
+        cv2.putText(frame, "Searching...", (50, 100),
+                    cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 2)
+
         frame_count += 1
 
-        # تقليل الضغط (كل 3 frames)
         if frame_count % 3 == 0:
 
             match_index = recognize_face(frame, known_images)
@@ -227,7 +236,7 @@ def run_system():
                 name = known_names[match_index]
                 student_id = known_ids[match_index]
 
-                cv2.putText(frame, name, (50, 50),
+                cv2.putText(frame, f"Recognized: {name}", (50, 50),
                             cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 
                 current_time = time.time()
@@ -240,29 +249,39 @@ def run_system():
 
                     if success:
                         send_mqtt_message(f"PRESENT:{name}:{student_id}")
-                        print(f"✅ {name} marked present")
-                        done = True  # 🔥 اقفل بعد النجاح
+                        print(f"{name} marked present")
+
+                        # إرسال النتيجة للويب
+                        with open("attendance_result.txt", "w") as f:
+                            f.write(f"PRESENT:{name}")
+
+                        done = True
 
                     else:
                         send_mqtt_message(f"ALREADY:{name}:{student_id}")
-                        print(f"⚠️ {name} already marked")
-                        done = True  # 🔥 اقفل بعد already
+                        print(f"{name} already marked")
+
+                        # إرسال النتيجة للويب
+                        with open("attendance_result.txt", "w") as f:
+                            f.write(f"ALREADY:{name}")
+
+                        done = True
 
             else:
-                cv2.putText(frame, "Unknown", (50, 50),
+                cv2.putText(frame, "Unknown Face", (50, 50),
                             cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-
-                if last_sent_message != "UNKNOWN":
-                    send_mqtt_message(f"UNKNOWN:{int(time.time())}")
 
         cv2.imshow("Smart Attendance", frame)
 
-        # 🔥 الإيقاف التلقائي
+        # يقفل فقط بعد التعرف
         if done:
-            print("🛑 Auto Stop: Attendance completed")
+            print("Auto Stop: Attendance completed")
+
+            # مهم جداً لضمان وصول MQTT
+            time.sleep(2)
+
             break
 
-        # زر يدوي احتياطي
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
@@ -271,5 +290,9 @@ def run_system():
     mqtt_client.loop_stop()
     mqtt_client.disconnect()
 
+# ===================================================
+# تشغيل البرنامج
+# ===================================================
 if __name__ == "__main__":
     run_system()
+    exit()

@@ -3,19 +3,14 @@
   كود ESP32 - داخل Wokwi
 ===================================================
   الخطوات:
-  1. افتح موقع wokwi.com
-  2. اختر New Project ثم ESP32
-  3. انسخ هذا الكود في ملف main.ino
-  4. أضف المكونات في Wokwi:
-       - LCD 16x2 (I2C)
-       - LED أخضر على Pin 25
-       - LED أحمر على Pin 26
-       - Buzzer على Pin 27
-  5. اضغط Start Simulation
-===================================================
-  مكتبات مطلوبة:
-       - PubSubClient
-       - LiquidCrystal_I2C
+  1. افتح wokwi.com
+  2. New Project → ESP32
+  3. انسخ الكود في main.ino
+  4. أضف:
+     - LCD I2C
+     - LED أخضر (25)
+     - LED أحمر (26)
+     - Buzzer (27)
 ===================================================
 */
 
@@ -24,13 +19,13 @@
 #include <LiquidCrystal_I2C.h>
 
 // ===================================================
-// إعدادات الواي فاي - في Wokwi استخدم هذه القيم
+// WiFi
 // ===================================================
 const char* WIFI_SSID     = "Wokwi-GUEST";
 const char* WIFI_PASSWORD = "";
 
 // ===================================================
-// إعدادات MQTT (السيرفر القديم)
+// MQTT
 // ===================================================
 const char* MQTT_BROKER = "broker.hivemq.com";
 const int   MQTT_PORT   = 1883;
@@ -44,7 +39,7 @@ const int RED_LED   = 26;
 const int BUZZER    = 27;
 
 // ===================================================
-// تهيئة الشاشة
+// LCD
 // ===================================================
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 
@@ -52,13 +47,14 @@ WiFiClient espClient;
 PubSubClient mqttClient(espClient);
 
 // ===================================================
-// متغيرات احترافية 
+// متغيرات
 // ===================================================
-bool mqttConnectedOnce = false;
-String lastMessage = "";   // لمنع التكرار
+bool mqttShown = false;
+String lastMessage = "";
+bool isProcessing = false;
 
 // ===================================================
-// دالة تحريك النص اذا كان الاسم طويل (Scroll)
+// Scroll للنص الطويل
 // ===================================================
 void scrollText(String text, int row, int delayTime = 300) {
 
@@ -76,7 +72,7 @@ void scrollText(String text, int row, int delayTime = 300) {
 }
 
 // ===================================================
-// استقبال الرسائل (نسخة احترافية)
+// استقبال الرسائل
 // ===================================================
 void onMessageReceived(char* topic, byte* payload, unsigned int length) {
 
@@ -87,69 +83,64 @@ void onMessageReceived(char* topic, byte* payload, unsigned int length) {
 
   Serial.println("New Message: " + message);
 
-  //  تجاهل الرسائل المكررة
+  // تجاهل الفاضي
+  if (message.length() == 0) return;
+
+  // منع التكرار
   if (message == lastMessage) return;
+
+  // منع التداخل
+  if (isProcessing) return;
+
   lastMessage = message;
+  isProcessing = true;
 
   lcd.clear();
 
-  // ===== حضور مسجل =====
+  // ===== PRESENT =====
   if (message.startsWith("PRESENT:")) {
 
     String data = message.substring(8);
-
-    // فصل الاسم عن الـ ID
-    int separatorIndex = data.indexOf(":");
-    String name;
-
-    if (separatorIndex != -1) {
-      name = data.substring(0, separatorIndex);
-    } else {
-      name = data;
-    }
+    int sep = data.indexOf(":");
+    String name = (sep != -1) ? data.substring(0, sep) : data;
 
     lcd.setCursor(0, 0);
     lcd.print("Attendance OK!");
-    
-    //  عرض الاسم مع Scroll
+
     scrollText(name, 1);
 
     digitalWrite(GREEN_LED, HIGH);
     digitalWrite(RED_LED, LOW);
     tone(BUZZER, 1000, 300);
-    delay(2000);
+
+    delay(10000);
+
     digitalWrite(GREEN_LED, LOW);
   }
 
-  // ===== مسجل مسبقاً =====
+  // ===== ALREADY =====
   else if (message.startsWith("ALREADY:")) {
 
     String data = message.substring(8);
-
-    int separatorIndex = data.indexOf(":");
-    String name;
-
-    if (separatorIndex != -1) {
-      name = data.substring(0, separatorIndex);
-    } else {
-      name = data;
-    }
+    int sep = data.indexOf(":");
+    String name = (sep != -1) ? data.substring(0, sep) : data;
 
     lcd.setCursor(0, 0);
     lcd.print("Already Marked!");
 
-    // عرض الاسم مع Scroll
     scrollText(name, 1);
 
     digitalWrite(GREEN_LED, HIGH);
     digitalWrite(RED_LED, HIGH);
     tone(BUZZER, 500, 200);
-    delay(2000);
+
+    delay(10000);
+
     digitalWrite(GREEN_LED, LOW);
     digitalWrite(RED_LED, LOW);
   }
 
-  // ===== وجه غير معروف =====
+  // ===== UNKNOWN =====
   else if (message.startsWith("UNKNOWN")) {
 
     lcd.setCursor(0, 0);
@@ -158,21 +149,25 @@ void onMessageReceived(char* topic, byte* payload, unsigned int length) {
     lcd.print("Access Denied");
 
     digitalWrite(RED_LED, HIGH);
-    digitalWrite(GREEN_LED, LOW);
     tone(BUZZER, 300, 500);
-    delay(2000);
+
+    delay(10000);
+
     digitalWrite(RED_LED, LOW);
   }
 
-  /*
+  // ===================================================
+  // رجوع للوضع الطبيعي
+  // ===================================================
   lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print("System Ready...");
-  */
+
+  isProcessing = false;
 }
 
 // ===================================================
-// الاتصال بالواي فاي
+// WiFi
 // ===================================================
 void connectWiFi() {
 
@@ -181,59 +176,51 @@ void connectWiFi() {
 
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 
-  int attempts = 0;
-
-  while (WiFi.status() != WL_CONNECTED && attempts < 20) {
+  while (WiFi.status() != WL_CONNECTED) {
     delay(500);
-    attempts++;
   }
 
   lcd.clear();
-
-  if (WiFi.status() == WL_CONNECTED) {
-    lcd.print("WiFi OK");
-  } else {
-    lcd.print("WiFi Failed");
-  }
-
+  lcd.print("WiFi OK");
   delay(1000);
 }
 
 // ===================================================
-// الاتصال بـ MQTT (نسخة احترافية)
+// MQTT (المهم)
 // ===================================================
 void connectMQTT() {
 
-  if (mqttClient.connected()) return;
+  while (!mqttClient.connected()) {
 
-  int retries = 0;
+    //  Client ID عشوائي (يحـل المشكلة)
+    String clientId = "ESP32-" + String(random(1000, 9999));
 
-  while (!mqttClient.connected() && retries < 5) {
+    if (mqttClient.connect(clientId.c_str())) {
 
-    if (mqttClient.connect("ESP32Client")) {
+      Serial.println("MQTT Connected");
 
+      //  لازم الاشتراك هنا
       mqttClient.subscribe(MQTT_TOPIC);
 
-      if (!mqttConnectedOnce) {
+      if (!mqttShown) {
         lcd.clear();
         lcd.print("MQTT OK");
-        mqttConnectedOnce = true;
         delay(1000);
+        mqttShown = true;
       }
 
     } else {
-      retries++;
       delay(1000);
     }
   }
 }
 
 // ===================================================
-// الإعداد الأولي
+// setup
 // ===================================================
 void setup() {
 
-  Serial.begin(115200); // Debug
+  Serial.begin(115200);
 
   pinMode(GREEN_LED, OUTPUT);
   pinMode(RED_LED, OUTPUT);
@@ -248,7 +235,6 @@ void setup() {
   lcd.print("Starting...");
   delay(1500);
 
-  // الاتصال
   connectWiFi();
 
   mqttClient.setServer(MQTT_BROKER, MQTT_PORT);
@@ -262,7 +248,7 @@ void setup() {
 }
 
 // ===================================================
-// الحلقة الرئيسية
+// loop
 // ===================================================
 void loop() {
 
@@ -270,6 +256,5 @@ void loop() {
     connectMQTT();
   }
 
-  mqttClient.loop();
-  delay(100);
+  mqttClient.loop();  //  مهم جداً
 }

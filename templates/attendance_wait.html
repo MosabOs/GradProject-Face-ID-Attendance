@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Attendance</title>
+
+    <script>
+    setInterval(async () => {
+
+        let res = await fetch("/check_result");
+        let data = await res.json();
+
+        if (data.status !== "waiting") {
+            window.location.href = "/result/" + data.status + "/" + data.name;
+        }
+
+    }, 1000);
+    </script>
+
+    <style>
+        body {
+            text-align: center;
+            font-family: Arial;
+            background: #f4f4f4;
+        }
+
+        .box {
+            margin-top: 100px;
+            padding: 30px;
+            background: white;
+            display: inline-block;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="box">
+    <h2>Camera is running...</h2>
+    <p>Please look at the camera</p>
+
+    <a href="/">
+        <button>Back to Home</button>
+    </a>
+</div>
+
+</body>
+</html>

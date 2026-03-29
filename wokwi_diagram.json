@@ -8,8 +8,8 @@
     {
       "type": "wokwi-led",
       "id": "led_green",
-      "top": 80,
-      "left": 350,
+      "top": 73.2,
+      "left": 349.4,
       "attrs": { "color": "green" }
     },
     {
@@ -19,28 +19,44 @@
       "left": 349.4,
       "attrs": { "color": "red" }
     },
-    { "type": "wokwi-buzzer", "id": "buzzer", "top": 194.4, "left": 395.4, "attrs": {} },
-    { "type": "wokwi-resistor", "id": "r1", "top": 80, "left": 300, "attrs": { "value": "220" } },
-    { "type": "wokwi-resistor", "id": "r2", "top": 140, "left": 300, "attrs": { "value": "220" } }
+    { "type": "wokwi-buzzer", "id": "buzzer", "top": 252, "left": 414.6, "attrs": {} },
+    {
+      "type": "wokwi-resistor",
+      "id": "r1",
+      "top": 61.55,
+      "left": 297.6,
+      "attrs": { "value": "220" }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r2",
+      "top": 215.15,
+      "left": 288,
+      "attrs": { "value": "220" }
+    }
   ],
   "connections": [
     [ "esp:GPIO25", "r1:1", "green", [] ],
-    [ "r1:2", "led_green:A", "green", [] ],
-    [ "led_green:C", "esp:GND.1", "green", [ "h-297.8", "v12.5" ] ],
-    [ "esp:GPIO26", "r2:1", "red", [] ],
-    [ "r2:2", "led_red:A", "red", [] ],
-    [ "led_red:C", "esp:GND.1", "red", [ "h-259.4", "v-57.2", "h-18.9" ] ],
+    [ "r1:2", "led_green:A", "green", [ "h27.6", "v48" ] ],
+    [ "led_green:C", "esp:GND.1", "green", [ "h-18.8", "h-279", "v19.3" ] ],
+    [ "led_red:C", "esp:GND.1", "red", [ "h-259.4", "v-67.2", "h-18.3" ] ],
     [ "esp:GPIO27", "buzzer:1", "orange", [] ],
     [ "esp:GPIO21", "lcd:SDA", "blue", [] ],
     [ "esp:GPIO22", "lcd:SCL", "yellow", [] ],
-    [ "esp:3V3", "lcd:VCC", "#8f4814", [ "h71.5", "v-237" ] ],
-    [ "esp:GND.1", "lcd:GND", "cyan", [ "h90.7", "v-237" ] ],
-    [ "lcd:SDA", "esp:D21", "green", [ "h-98.4", "v117.4" ] ],
+    [ "esp:3V3", "lcd:VCC", "cyan", [ "h71.5", "v-237" ] ],
+    [ "esp:GND.1", "lcd:GND", "#8f4814", [ "h57.3", "v-222.5" ] ],
+    [ "lcd:SDA", "esp:D21", "yellow", [ "h-98.4", "v117.4" ] ],
     [ "lcd:SCL", "esp:D22", "green", [ "h-108", "v79" ] ],
-    [ "r1:1", "esp:D25", "green", [ "v0" ] ],
-    [ "r2:1", "esp:D26", "red", [ "v55.95", "h-348", "v-115.1" ] ],
-    [ "buzzer:1", "esp:D27", "black", [ "v9.6", "h-451.2", "v-191.7" ] ],
-    [ "buzzer:2", "esp:GND.1", "orange", [ "h-0.4", "v38.4", "h-345.3" ] ]
+    [ "r1:1", "esp:D25", "green", [ "h-307.2" ] ],
+    [ "buzzer:1", "esp:D27", "red", [ "v9.6", "h-451.2", "v-191.7" ] ],
+    [
+      "buzzer:2",
+      "esp:GND.1",
+      "blue",
+      [ "h-0.4", "v38.4", "h-384", "v-211.2", "h28.8", "v-28.7" ]
+    ],
+    [ "led_red:A", "r2:2", "red", [ "v0" ] ],
+    [ "r2:1", "esp:D26", "red", [ "v0", "h-326.4", "v-134.4" ] ]
   ],
   "dependencies": {}
 }

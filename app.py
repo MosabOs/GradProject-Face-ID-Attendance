@@ -11,11 +11,12 @@ Flask Web App - Smart Attendance System
 ===================================================
 """
 
-from flask import Flask, render_template, request, send_file
+from flask import Flask, render_template, request, send_file, jsonify
 import os
 import pickle
 import cv2
 import subprocess
+import sys  # لتشغيل نفس بيئة البايثون
 
 app = Flask(__name__)
 
@@ -49,7 +50,7 @@ def index():
     return render_template("index.html")
 
 # ===================================================
-# تسجيل طالب (رفع صورة أو بعد الكاميرا)
+# تسجيل طالب (رفع صورة أو كاميرا)
 # ===================================================
 @app.route("/register", methods=["GET", "POST"])
 def register():
@@ -60,52 +61,44 @@ def register():
         student_id = request.form.get("student_id")
 
         file = request.files.get("image")
-
         image = None
 
         # ===================================================
-        # تحديد مصدر الصورة (كاميرا أو رفع)
+        # تحديد مصدر الصورة
         # ===================================================
 
-        # 🟢 حالة الكاميرا
+        # حالة الكاميرا
         if (file is None or file.filename == "") and os.path.exists("temp_capture.jpg"):
             image = cv2.imread("temp_capture.jpg")
 
-        # 🟣 حالة رفع صورة
+        # حالة رفع صورة
         elif file and file.filename != "":
             filepath = "temp.jpg"
             file.save(filepath)
             image = cv2.imread(filepath)
             os.remove(filepath)
 
-        # 🔴 لا يوجد صورة
         else:
             return "Please upload image or use camera"
 
         # ===================================================
-        # حفظ الصورة كملف حقيقي داخل images/
+        # حفظ الصورة داخل images/
         # ===================================================
         if not os.path.exists("images"):
             os.makedirs("images")
 
-        # تنظيف الاسم (منع مشاكل في اسم الملف)
         safe_name = name.replace(" ", "_")
-
         image_filename = f"images/{safe_name}.jpg"
 
-        # منع التكرار
         counter = 1
-        original_filename = image_filename
-
         while os.path.exists(image_filename):
             image_filename = f"images/{safe_name}_{counter}.jpg"
             counter += 1
 
-        # حفظ الصورة
         cv2.imwrite(image_filename, image)
 
         # ===================================================
-        # حفظ البيانات (نخزن المسار بدل الصورة)
+        # حفظ البيانات (نخزن المسار)
         # ===================================================
         data = load_data()
 
@@ -115,12 +108,12 @@ def register():
 
         save_data(data)
 
-        # حذف الصورة المؤقتة
+        # حذف المؤقت
         if os.path.exists("temp_capture.jpg"):
             os.remove("temp_capture.jpg")
 
         # ===================================================
-        # عرض صفحة النجاح مع الصورة
+        # صفحة النجاح
         # ===================================================
         return render_template("success.html",
                                name=name,
@@ -130,7 +123,7 @@ def register():
     return render_template("register.html")
 
 # ===================================================
-# تشغيل الكاميرا + الرجوع تلقائي
+# تشغيل الكاميرا للتسجيل
 # ===================================================
 @app.route("/register_camera", methods=["POST"])
 def register_camera():
@@ -139,7 +132,7 @@ def register_camera():
     student_id = request.form.get("student_id")
 
     subprocess.run([
-        "python",
+        sys.executable,
         "registration/register_student_using_camera.py",
         name,
         student_id
@@ -158,13 +151,55 @@ def get_uploaded_image(filename):
     return send_file(filename, mimetype='image/jpeg')
 
 # ===================================================
-# تسجيل حضور
+# تسجيل حضور (تشغيل الكاميرا بدون كتم)
 # ===================================================
 @app.route("/attendance")
 def attendance():
-    subprocess.Popen(["python", "attendance_mqtt.py"])
-    return "Attendance system started"
 
+    # حذف أي نتيجة قديمة
+    if os.path.exists("attendance_result.txt"):
+        os.remove("attendance_result.txt")
+
+    # تشغيل الكاميرا
+    subprocess.Popen(
+        [sys.executable, "attendance_mqtt.py"]
+    )
+
+    # عرض صفحة انتظار
+    return render_template("attendance_wait.html")
+
+
+# ===================================================
+# فحص نتيجة الحضور
+# ===================================================
+@app.route("/check_result")
+def check_result():
+
+    if not os.path.exists("attendance_result.txt"):
+        return jsonify({"status": "waiting"})
+
+    with open("attendance_result.txt", "r") as f:
+        data = f.read()
+
+    os.remove("attendance_result.txt")
+
+    status, name = data.split(":")
+
+    return jsonify({"status": status, "name": name})
+
+
+# ===================================================
+# عرض النتيجة
+# ===================================================
+@app.route("/result/<status>/<name>")
+def result(status, name):
+    return render_template("attendance_result.html",
+                           status=status,
+                           name=name)
+
+
+# ===================================================
+# تشغيل التطبيق
 # ===================================================
 if __name__ == "__main__":
     app.run(debug=True)
