@@ -29,7 +29,7 @@ const char* WIFI_PASSWORD = "";
 // ===================================================
 const char* MQTT_BROKER = "broker.hivemq.com";
 const int   MQTT_PORT   = 1883;
-const char* MQTT_TOPIC  = "smartattendance/result";
+const char* MQTT_TOPIC  = "smartattendance/result2";
 
 // ===================================================
 // Pins
