@@ -50,7 +50,6 @@ PubSubClient mqttClient(espClient);
 // متغيرات
 // ===================================================
 bool mqttShown = false;
-String lastMessage = "";
 bool isProcessing = false;
 
 // ===================================================
@@ -83,24 +82,23 @@ void onMessageReceived(char* topic, byte* payload, unsigned int length) {
 
   Serial.println("New Message: " + message);
 
-  // تجاهل الفاضي
+  // تجاهل الرسائل الفارغة
   if (message.length() == 0) return;
 
-  // منع التكرار
-  if (message == lastMessage) return;
-
-  // منع التداخل
+  // منع التداخل فقط (مهم)
   if (isProcessing) return;
 
-  lastMessage = message;
   isProcessing = true;
 
   lcd.clear();
 
+  // ===================================================
   // ===== PRESENT =====
+  // ===================================================
   if (message.startsWith("PRESENT:")) {
 
     String data = message.substring(8);
+
     int sep = data.indexOf(":");
     String name = (sep != -1) ? data.substring(0, sep) : data;
 
@@ -113,15 +111,18 @@ void onMessageReceived(char* topic, byte* payload, unsigned int length) {
     digitalWrite(RED_LED, LOW);
     tone(BUZZER, 1000, 300);
 
-    delay(10000);
+    delay(5000);
 
     digitalWrite(GREEN_LED, LOW);
   }
 
+  // ===================================================
   // ===== ALREADY =====
+  // ===================================================
   else if (message.startsWith("ALREADY:")) {
 
     String data = message.substring(8);
+
     int sep = data.indexOf(":");
     String name = (sep != -1) ? data.substring(0, sep) : data;
 
@@ -134,13 +135,15 @@ void onMessageReceived(char* topic, byte* payload, unsigned int length) {
     digitalWrite(RED_LED, HIGH);
     tone(BUZZER, 500, 200);
 
-    delay(10000);
+    delay(5000);
 
     digitalWrite(GREEN_LED, LOW);
     digitalWrite(RED_LED, LOW);
   }
 
+  // ===================================================
   // ===== UNKNOWN =====
+  // ===================================================
   else if (message.startsWith("UNKNOWN")) {
 
     lcd.setCursor(0, 0);
@@ -151,7 +154,7 @@ void onMessageReceived(char* topic, byte* payload, unsigned int length) {
     digitalWrite(RED_LED, HIGH);
     tone(BUZZER, 300, 500);
 
-    delay(10000);
+    delay(5000);
 
     digitalWrite(RED_LED, LOW);
   }
@@ -186,20 +189,18 @@ void connectWiFi() {
 }
 
 // ===================================================
-// MQTT (المهم)
+// MQTT
 // ===================================================
 void connectMQTT() {
 
   while (!mqttClient.connected()) {
 
-    //  Client ID عشوائي (يحـل المشكلة)
     String clientId = "ESP32-" + String(random(1000, 9999));
 
     if (mqttClient.connect(clientId.c_str())) {
 
       Serial.println("MQTT Connected");
 
-      //  لازم الاشتراك هنا
       mqttClient.subscribe(MQTT_TOPIC);
 
       if (!mqttShown) {
@@ -256,5 +257,5 @@ void loop() {
     connectMQTT();
   }
 
-  mqttClient.loop();  //  مهم جداً
+  mqttClient.loop();
 }

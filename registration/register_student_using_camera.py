@@ -37,6 +37,13 @@ student_id = sys.argv[2]
 
 cap = cv2.VideoCapture(0)
 
+# ===================================================
+# تجهيز نافذة الكاميرا لتظهر فوق
+# ===================================================
+cv2.namedWindow("Camera", cv2.WINDOW_NORMAL)
+cv2.resizeWindow("Camera", 800, 600)
+cv2.moveWindow("Camera", 100, 100)
+
 while True:
     ret, frame = cap.read()
 
@@ -48,6 +55,11 @@ while True:
                 cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
 
     cv2.imshow("Camera", frame)
+    
+    # ===================================================
+    # إجبار النافذة تكون في المقدمة
+    # ===================================================
+    cv2.setWindowProperty("Camera", cv2.WND_PROP_TOPMOST, 1)
 
     key = cv2.waitKey(1)
 

@@ -6,26 +6,37 @@
     <style>
         body {
             text-align: center;
-            font-family: Arial;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: #f4f4f4;
         }
 
+        /* ===================================================
+           الحاوية الرئيسية (نفس تصميم النظام)
+        =================================================== */
         .box {
             margin-top: 100px;
-            padding: 30px;
+            padding: 40px;
             background: white;
             display: inline-block;
-            border-radius: 10px;
-            box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
+            border-radius: 20px;
+            box-shadow: 0px 10px 25px rgba(0,0,0,0.1);
+            min-width: 300px;
         }
 
         h2 {
-            color: green;
+            color: #28a745;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        p {
+            font-size: 16px;
+            margin: 5px 0;
         }
 
         img {
             margin-top: 15px;
-            border-radius: 10px;
+            border-radius: 12px;
             border: 2px solid #ddd;
         }
 
@@ -33,8 +44,27 @@
             padding: 12px 25px;
             margin-top: 20px;
             font-size: 16px;
+            border-radius: 12px;
+            border: 2px solid #181f69;
+
+            font-weight: 600;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+
             cursor: pointer;
+            transition: 0.3s;
+            background: #181f69;
+            color: white;
         }
+
+        /* ===================================================
+           تأثير hover (عكس الألوان)
+        =================================================== */
+        button:hover {
+            background: white;
+            color: #181f69;
+            transform: scale(1.05);
+        }
+
     </style>
 </head>
 <body>
@@ -42,7 +72,7 @@
 <div class="box">
 
     <!-- رسالة النجاح -->
-    <h2>✅ Student Saved Successfully</h2>
+    <h2>Student Saved Successfully</h2>
 
     <!-- عرض البيانات -->
     <p><strong>Name:</strong> {{ name }}</p>
@@ -55,7 +85,7 @@
 
     <!-- زر الرجوع -->
     <a href="/">
-        <button>⬅️ Back to Home</button>
+        <button>Back to Home</button>
     </a>
 
 </div>

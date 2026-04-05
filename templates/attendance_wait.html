@@ -4,32 +4,93 @@
     <title>Attendance</title>
 
     <script>
-    setInterval(async () => {
+        let stopped = false;
 
-        let res = await fetch("/check_result");
-        let data = await res.json();
+        // ===================================================
+        // 🔴 متابعة النتيجة
+        // ===================================================
+        setInterval(async () => {
 
-        if (data.status !== "waiting") {
-            window.location.href = "/result/" + data.status + "/" + data.name;
+            if (stopped) return;   // يمنع التحويل بعد الضغط
+
+            let res = await fetch("/check_result");
+            let data = await res.json();
+
+            if (data.status !== "waiting") {
+                window.location.href = "/result/" + data.status + "/" + data.name;
+            }
+
+        }, 1000);
+
+        // ===================================================
+        // 🔴 زر الرجوع
+        // ===================================================
+        function goHome() {
+
+            stopped = true;
+
+            fetch("/stop_camera")   // يوقف الكاميرا
+            .then(() => {
+                window.location.href = "/";
+            });
         }
-
-    }, 1000);
     </script>
 
     <style>
         body {
             text-align: center;
-            font-family: Arial;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: #f4f4f4;
         }
 
+        /* ===================================================
+           الحاوية الرئيسية (نفس تصميم الصفحات)
+        =================================================== */
         .box {
             margin-top: 100px;
-            padding: 30px;
+            padding: 40px;
             background: white;
             display: inline-block;
-            border-radius: 10px;
+            border-radius: 20px;
+            box-shadow: 0px 10px 25px rgba(0,0,0,0.1);
+            min-width: 320px;
         }
+
+        h2 {
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        p {
+            color: #555;
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 12px 25px;
+            margin-top: 20px;
+            font-size: 16px;
+            border-radius: 12px;
+            border: 2px solid #181f69;
+
+            font-weight: 600;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+
+            cursor: pointer;
+            transition: 0.3s;
+            background: #181f69;
+            color: white;
+        }
+
+        /* ===================================================
+           تأثير hover (عكس الألوان)
+        =================================================== */
+        button:hover {
+            background: white;
+            color: #181f69;
+            transform: scale(1.05);
+        }
+
     </style>
 </head>
 
@@ -39,9 +100,8 @@
     <h2>Camera is running...</h2>
     <p>Please look at the camera</p>
 
-    <a href="/">
-        <button>Back to Home</button>
-    </a>
+    <!-- زر صحيح -->
+    <button onclick="goHome()">Back to Home</button>
 </div>
 
 </body>

@@ -2,3 +2,5 @@
 *.pkl
 *.jpg
 *.jpeg
+*.png
+.env

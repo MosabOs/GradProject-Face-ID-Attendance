@@ -6,30 +6,76 @@
     <style>
         body {
             text-align: center;
-            font-family: Arial;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: #f4f4f4;
         }
 
+        h2 {
+            margin-top: 30px;
+            font-weight: 700;
+        }
+
+        /* ===================================================
+           الحاوية الرئيسية (شكل احترافي)
+        =================================================== */
+        .container {
+            background: white;
+            width: 50%;
+            margin: 40px auto;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0px 10px 25px rgba(0,0,0,0.1);
+        }
+
         input {
-            padding: 10px;
+            padding: 12px;
             margin: 10px;
-            width: 250px;
+            width: 260px;
+            border-radius: 10px;
+            border: 1px solid #ccc;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
         button {
-            padding: 10px 20px;
+            padding: 12px 25px;
             margin: 10px;
+            font-size: 15px;
+            border-radius: 12px;
+            border: 2px solid #181f69;
+
+            font-weight: 600;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+
             cursor: pointer;
+            transition: 0.3s;
+            background: #181f69;
+            color: white;
+        }
+
+        /* ===================================================
+           تأثير hover (عكس الألوان)
+        =================================================== */
+        button:hover {
+            background: white;
+            color: #181f69;
+            transform: scale(1.05);
         }
 
         .or-text {
             font-weight: bold;
+            margin-top: 10px;
         }
 
         .note {
             font-size: 14px;
             color: #555;
         }
+
+        img {
+            border-radius: 10px;
+            margin-top: 10px;
+        }
+
     </style>
 
     <!-- ===================================================
@@ -55,6 +101,8 @@
 
 <h2>Register New Student</h2>
 
+<div class="container">
+
 <form method="POST" enctype="multipart/form-data">
 
     <!-- الاسم -->
@@ -74,7 +122,7 @@
 
     <!-- الكاميرا -->
     <button type="submit" formaction="/register_camera" formmethod="POST">
-    🎥 Use Camera
+        Use Camera
     </button>
 
     <br><br>
@@ -83,17 +131,23 @@
     {% if captured %}
         <h3>Captured Image:</h3>
         <img src="/image/temp_capture.jpg" width="200">
-        <p style="color:green;">Image captured successfully ✔</p>
+        <p style="color:green;">Image captured successfully</p>
     {% endif %}
 
     <br>
 
     <!-- الحفظ -->
-    <button type="submit" formaction="/register" formmethod="POST" onclick="return validateForm()">
-    💾 Save Student
+    <button style="background-color: white;
+            color: #181f69;
+            width: 220px;
+            " 
+            type="submit" formaction="/register" formmethod="POST" onclick="return validateForm()">
+        Save Student
     </button>
 
 </form>
+
+</div>
 
 <br>
 

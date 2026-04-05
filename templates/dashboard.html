@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard</title>
+
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f4f4f4;
+            text-align: center;
+        }
+
+        h2 {
+            margin-top: 30px;
+            font-weight: 700;
+        }
+
+        /* ===================================================
+           الحاوية لكل يوم
+        =================================================== */
+        .day-container {
+            width: 85%;
+            margin: 30px auto;
+            background: white;
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0px 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .day-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #181f69;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background: #181f69;
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+
+        .present {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        button {
+            padding: 12px 25px;
+            margin: 30px;
+            font-size: 16px;
+            border-radius: 12px;
+            border: 2px solid #181f69;
+
+            font-weight: 600;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+
+            cursor: pointer;
+            transition: 0.3s;
+            background: #181f69;
+            color: white;
+        }
+
+        /* ===================================================
+           تأثير hover (عكس الألوان)
+        =================================================== */
+        button:hover {
+            background: white;
+            color: #181f69;
+            transform: scale(1.05);
+        }
+
+    </style>
+</head>
+
+<body>
+
+<h2>Attendance Dashboard</h2>
+
+<!-- ===================================================
+     تجميع البيانات حسب التاريخ (الحل الصحيح)
+=================================================== -->
+{% for date, items in records | groupby(2) %}
+
+<div class="day-container">
+    <div class="day-title">Date: {{ date }}</div>
+
+    <table>
+        <tr>
+            <th>Name</th>
+            <th>ID</th>
+            <th>Time</th>
+            <th>Status</th>
+        </tr>
+
+        <!-- ===================================================
+             عرض كل الطلاب في نفس اليوم
+        =================================================== -->
+        {% for r in items %}
+        <tr>
+            <td>{{ r[0] }}</td>
+            <td>{{ r[1] }}</td>
+            <td>{{ r[3] }}</td>
+            <td class="present">{{ r[4] }}</td>
+        </tr>
+        {% endfor %}
+
+    </table>
+</div>
+
+{% endfor %}
+
+<a href="/">
+    <button>Back to Home</button>
+</a>
+
+</body>
+</html>
