@@ -48,7 +48,6 @@ git clone <your-repo-url>
 cd FACE-IO-main
 ```
 
-# Smart Attendance System
 
 ## 2. Install Dependencies
 
