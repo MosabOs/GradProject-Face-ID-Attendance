@@ -66,13 +66,13 @@ def add_student():
 
     # التحقق من الصورة
     if not os.path.exists(image_path):
-        print("❌ المسار غير صحيح")
+        print("❌ The path is wrong")
         return
 
     image = cv2.imread(image_path)
 
     if image is None:
-        print("❌ فشل في قراءة الصورة")
+        print("❌Failed to read the image")
         return
 
     # تحميل البيانات القديمة
@@ -80,7 +80,7 @@ def add_student():
 
     # التحقق من التكرار
     if student_exists(data, student_id):
-        print("⚠️ الطالب موجود مسبقاً بنفس الرقم")
+        print("⚠️The student already exists with the same number")
         return
 
     # إضافة البيانات
@@ -91,7 +91,7 @@ def add_student():
     # حفظ
     save_data(data)
 
-    print("✅ تم تسجيل الطالب بنجاح!")
+    print("✅ The student has been registered successfully!")
 
 # ===================================================
 # التشغيل

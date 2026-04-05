@@ -200,7 +200,7 @@ def stop_camera():
 
     global attendance_process
 
-    # 🔥 إرسال إشارة إيقاف للبرنامج
+    #  إرسال إشارة إيقاف للبرنامج
     open("stop_signal.txt", "w").close()
 
     if attendance_process is not None:

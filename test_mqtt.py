@@ -95,7 +95,7 @@ import random
 # ===================================================
 BROKER = "broker.hivemq.com"
 PORT = 1883
-TOPIC = "smartattendance/result"
+TOPIC = "smartattendance/result2"
 
 client = mqtt.Client()
 

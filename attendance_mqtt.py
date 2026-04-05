@@ -342,7 +342,7 @@ from deepface import DeepFace
 # ===================================================
 MQTT_BROKER = "broker.hivemq.com"
 MQTT_PORT   = 1883
-MQTT_TOPIC  = "smartattendance/result"
+MQTT_TOPIC  = "smartattendance/result2"
 
 # ===================================================
 # إعدادات النظام
@@ -406,7 +406,7 @@ def send_mqtt_message(message):
             MQTT_TOPIC,
             message,
             qos=1,
-            retain=True
+            retain=False
         )
 
         # انتظار الإرسال الحقيقي
@@ -540,9 +540,9 @@ def run_system():
     # ===================================================
     # تجهيز نافذة الكاميرا لتظهر فوق
     # ===================================================
-    cv2.namedWindow("Smart Attendance", cv2.WINDOW_NORMAL)
-    cv2.resizeWindow("Smart Attendance", 800, 600)
-    cv2.moveWindow("Smart Attendance", 100, 100)
+    # cv2.namedWindow("Smart Attendance", cv2.WINDOW_NORMAL)
+    # cv2.resizeWindow("Smart Attendance", 800, 600)
+    # cv2.moveWindow("Smart Attendance", 100, 100)
 
     face_cascade = cv2.CascadeClassifier(
         cv2.data.haarcascades + 'haarcascade_frontalface_default.xml'
@@ -616,7 +616,7 @@ def run_system():
         # ===================================================
         # إجبار النافذة تكون في المقدمة
         # ===================================================
-        cv2.setWindowProperty("Smart Attendance", cv2.WND_PROP_TOPMOST, 1)
+        # cv2.setWindowProperty("Smart Attendance", cv2.WND_PROP_TOPMOST, 1)
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
