@@ -129,6 +129,3 @@ Use **App Password** instead of your real Gmail password for enhanced security.
 
 
 
-# Author:
-- Mosab Osama
-- Amro Maher
