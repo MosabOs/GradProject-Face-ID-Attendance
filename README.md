@@ -1,7 +1,7 @@
 # GradProject-Face-ID-Attendance
 Face ID Attendance Graduation Project 
 
-# AttendAI - Smart Attendance System using AI
+# Smart Face Recognition Attendance System Using Artificial Intelligence and IoT - (Graduate project )
 
 ## Overview
 AttendAI is an intelligent attendance system that uses face recognition and MQTT communication to automate student attendance tracking.
